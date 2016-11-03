@@ -1,7 +1,6 @@
 package eu.simpaticoproject.ife.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -17,7 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import eu.simpaticoproject.ife.security.AppUserDetails;
-import eu.simpaticoproject.ife.security.TokenAuthFilter;
+import eu.simpaticoproject.ife.security.OAuthFilter;
 
 @Configuration
 @EnableWebMvcSecurity
@@ -36,24 +35,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		.authenticationProvider(tokenAuthProvider);
 	}
 	
-	@Autowired
-	@Value("${rememberme.key}")
-	private String rememberMeKey;	
-
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
 		.csrf()
 		.disable();
 				
-//		http
-//		.authorizeRequests()
-//		.antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-//		.antMatchers("/api/**")
-//		.hasAnyAuthority(AppUserDetails.IFE)
-//		.and()
-//		.addFilterBefore(tokenFilter(), BasicAuthenticationFilter.class)
-//		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+		http
+		.authorizeRequests()
+		.antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+		.antMatchers("/userapi/**")
+		.hasAnyAuthority(AppUserDetails.IFE)
+		.and()
+		.addFilterBefore(tokenFilter(), BasicAuthenticationFilter.class)
+		.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 		
 		http
 			.authorizeRequests()
@@ -66,8 +61,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean 
-	public TokenAuthFilter tokenFilter() throws Exception{
-		 return new TokenAuthFilter();
+	public OAuthFilter tokenFilter() throws Exception{
+		 return new OAuthFilter();
 	}
 	
 	@Bean
