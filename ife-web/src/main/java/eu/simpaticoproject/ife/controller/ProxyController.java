@@ -17,6 +17,8 @@
 package eu.simpaticoproject.ife.controller;
 
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -82,11 +85,12 @@ public class ProxyController {
 	private String imagesKeyValue;
 	
 	@RequestMapping(value = "/api/proxy/textenrich", method = RequestMethod.GET)
-	public @ResponseBody HttpEntity<String> textEnrichment(HttpServletRequest request) throws Exception {
+	public @ResponseBody HttpEntity<String> textEnrichment(@RequestParam String text,
+			HttpServletRequest request) throws Exception {
 		
 		String urlToCall = textEnrichUrl;
 		if(Utils.isNotEmpty(request.getQueryString())) {
-			urlToCall = urlToCall + "?" + request.getQueryString();
+			urlToCall = urlToCall + "?text=" + URLEncoder.encode(text, "UTF-8");
 		}
 		if(logger.isInfoEnabled()) {
 			logger.info("textenrich:" + urlToCall);
@@ -94,10 +98,7 @@ public class ProxyController {
 		GetMethod responseConnection = HTTPUtils.getConnection(urlToCall, null, null, null, null, request);
 		
 		HttpHeaders headers = new HttpHeaders();
-		Header[] responseHeaders = responseConnection.getResponseHeaders();
-		for(Header header : responseHeaders) {
-			headers.add(header.getName(), header.getValue());
-		}
+		headers.add("Content-Type", "application/json; charset=UTF-8");
 		InputStream is = responseConnection.getResponseBodyAsStream();
 		byte[] byteStream = IOUtils.toByteArray(is);
 		String body = new String(byteStream, "UTF-8");
@@ -105,11 +106,13 @@ public class ProxyController {
 	}
 	
 	@RequestMapping(value = "/api/proxy/wikipedia", method = RequestMethod.GET)
-	public @ResponseBody HttpEntity<byte[]> wikipedia(HttpServletRequest request) throws Exception {
+	public @ResponseBody HttpEntity<byte[]> wikipedia(@RequestParam String content,
+			HttpServletRequest request) throws Exception {
 		
 		String urlToCall = wikipediaUrl;
 		if(Utils.isNotEmpty(request.getQueryString())) {
-			urlToCall = urlToCall + "?" + request.getQueryString();
+			urlToCall = urlToCall + "?action=parse&contentmodel=wikitext&prop=text&format=json&text="	+ 
+					URLEncoder.encode(content, "UTF-8");
 		}
 		if(logger.isInfoEnabled()) {
 			logger.info("wikipedia:" + urlToCall);
