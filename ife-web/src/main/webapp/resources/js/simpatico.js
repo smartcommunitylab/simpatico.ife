@@ -43,9 +43,8 @@ $( function() {
 		selectedText = getSelectedText().trim();
 		var splitArray = selectedText.split(" ");
 		if(splitArray.length > 1) {
-			//$("#tabs").tabs("option", "disabled", [3] );
+			$("#tabs").tabs("option", "disabled", [3] );
 		}
-		//event.preventDefault();
 		dialog_simplify.dialog("open");
 	});
 	
@@ -67,7 +66,7 @@ var annotatedText = [];
 function simplify(source, target) {
   //var value = document.getElementById(source).innerText;
 	var value = source;
-	var url = "api/proxy/textenrich?text=['" + value + "']";
+	var url = "api/proxy/textenrich?text=" + value;
   //$.getJSON('http://hlt-services7.fbk.eu:8011/simp?text=['+value+']')
 	$.getJSON(url)
 	  .done(function(json) {
@@ -78,7 +77,9 @@ function simplify(source, target) {
 	        item = json.readability.forms[itemName];
 	        //console.log(JSON.stringify(item));
 	        annotatedText = annotatedText + value.substring(index, item.start-1);
-	        annotatedText = annotatedText + '<a  title="'+item.description.description+'" style="background-color:#FFFFFF;color:#000000;text-decoration:underline">'+ value.substring(item.start-1, item.end-1) +'</a> '
+	        annotatedText = annotatedText + ' <a  title="' + item.description.description + 
+	        '" style="background-color:#FFFFFF;color:#000000;text-decoration:underline">' + 
+	        value.substring(item.start, item.end) +'</a> '
 	        index = item.end;
 	    }
 	    annotatedText = annotatedText + value.substring(index, value.length);
@@ -92,16 +93,19 @@ function simplify(source, target) {
 }
 
 function wikipedia(source, target) {
-  //var value = document.getElementById(source).innerText;
 	var value = source;
 	var url = "api/proxy/wikipedia?content=" + value;
-  //$.getJSON('http://hlt-services7.fbk.eu:8011/simp?text=['+value+']')
 	$.getJSON(url)
 	  .done(function(json) {
 	    //console.log(JSON.stringify(baconGoodness));
-	    var annotatedText = json.parse.text['*'];
-	    //console.log('annotatedText ' + annotatedText);
-	    document.getElementById(target).innerHTML = annotatedText;
+	  	if(json.error) {
+		  	console.log(json.error.code + ", " + json.error.info);
+		  	document.getElementById(target).innerHTML = '<p>Termine non identificato</p>';
+	  	} else {
+	  		var annotatedText = json.parse.text['*'];
+	  		//console.log('annotatedText ' + annotatedText);
+	  		document.getElementById(target).innerHTML = annotatedText;
+	  	}
 	  })
 	  .fail(function( jqxhr, textStatus, error) {
 	  	console.log(textStatus + ", " + error);

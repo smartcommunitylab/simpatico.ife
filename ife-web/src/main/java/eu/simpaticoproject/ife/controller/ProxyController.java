@@ -111,7 +111,7 @@ public class ProxyController {
 		
 		String urlToCall = wikipediaUrl;
 		if(Utils.isNotEmpty(request.getQueryString())) {
-			urlToCall = urlToCall + "?action=parse&contentmodel=wikitext&prop=text&format=json&text="	+ 
+			urlToCall = urlToCall + "?action=parse&contentmodel=wikitext&prop=text&format=json&page="	+ 
 					URLEncoder.encode(content, "UTF-8");
 		}
 		if(logger.isInfoEnabled()) {
