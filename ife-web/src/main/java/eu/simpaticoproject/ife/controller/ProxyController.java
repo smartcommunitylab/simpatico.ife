@@ -86,11 +86,13 @@ public class ProxyController {
 	
 	@RequestMapping(value = "/api/proxy/textenrich", method = RequestMethod.GET)
 	public @ResponseBody HttpEntity<String> textEnrichment(@RequestParam String text,
+			@RequestParam String lex,
 			HttpServletRequest request) throws Exception {
 		
 		String urlToCall = textEnrichUrl;
 		if(Utils.isNotEmpty(request.getQueryString())) {
-			urlToCall = urlToCall + "?text=" + URLEncoder.encode(text, "UTF-8");
+			urlToCall = urlToCall + "?lang=it&lex=" + URLEncoder.encode(lex, "UTF-8")
+					+ "&text=" + URLEncoder.encode(text, "UTF-8");
 		}
 		if(logger.isInfoEnabled()) {
 			logger.info("textenrich:" + urlToCall);

@@ -19,7 +19,14 @@ $( function() {
 			if(ui.newPanel["0"].id == "tab-definizioni") {
 				if(selectedText != "") {
 					ui.newPanel["0"].innerHTML = '<p>Loading...</p>';
-					simplify(selectedText, ui.newPanel["0"].id);
+					definizioni(selectedText, ui.newPanel["0"].id);
+				} else {
+					ui.newPanel["0"].innerHTML = '<p>Nessun testo selezionato</p>';
+				}
+			} if(ui.newPanel["0"].id == "tab-semplificazione") {
+				if(selectedText != "") {
+					ui.newPanel["0"].innerHTML = '<p>Loading...</p>';
+					semplificazione(selectedText, ui.newPanel["0"].id);
 				} else {
 					ui.newPanel["0"].innerHTML = '<p>Nessun testo selezionato</p>';
 				}
@@ -63,10 +70,10 @@ function getSelectedText(){
 var annotatedText = [];
 
 
-function simplify(source, target) {
+function definizioni(source, target) {
   //var value = document.getElementById(source).innerText;
 	var value = source;
-	var url = "api/proxy/textenrich?text=" + value;
+	var url = "api/proxy/textenrich?lex=0&text=" + value;
   //$.getJSON('http://hlt-services7.fbk.eu:8011/simp?text=['+value+']')
 	$.getJSON(url)
 	  .done(function(json) {
@@ -74,17 +81,47 @@ function simplify(source, target) {
 	    var index = 0;
 	    var annotatedText = "";
 	    for (itemName in json.readability.forms) {
-	        item = json.readability.forms[itemName];
-	        //console.log(JSON.stringify(item));
-	        annotatedText = annotatedText + value.substring(index, item.start-1);
-	        annotatedText = annotatedText + ' <a  title="' + item.description.description + 
-	        '" style="background-color:#FFFFFF;color:#000000;text-decoration:underline">' + 
-	        value.substring(item.start, item.end) +'</a> '
-	        index = item.end;
+	    	item = json.readability.forms[itemName];
+	    	annotatedText = annotatedText + value.substring(index, item.start-1);
+	      annotatedText = annotatedText + ' <a  title="' + item.description.description + 
+	      '" style="background-color:#FFFFFF;color:#000000;text-decoration:underline">' + 
+	      value.substring(item.start, item.end) +'</a> '
+	      index = item.end;
 	    }
 	    annotatedText = annotatedText + value.substring(index, value.length);
 	    //console.log('annotatedText ' + annotatedText);
 	    document.getElementById(target).innerHTML = '<p>' + annotatedText + '</p>';
+	  })
+	  .fail(function( jqxhr, textStatus, error) {
+	  	console.log(textStatus + ", " + error);
+	  	document.getElementById(target).innerHTML = '<p>Errore nella comunicazione col server</p>';
+	  });
+}
+
+function semplificazione(source, target) {
+  //var value = document.getElementById(source).innerText;
+	var value = source;
+	var url = "api/proxy/textenrich?lex=1&text=" + value;
+  //$.getJSON('http://hlt-services7.fbk.eu:8011/simp?text=['+value+']')
+	$.getJSON(url)
+	  .done(function(json) {
+	    //console.log(JSON.stringify(baconGoodness));
+	    var index = 0;
+	    var annotatedText = "";
+	    if(json.simplifications) {
+	    	//console.log(JSON.stringify(json.simplifications));
+		    for (item in json.simplifications) {
+	        annotatedText = annotatedText + value.substring(index, json.simplifications[item].start-1);
+	        annotatedText = annotatedText + ' <a  title="' + json.simplifications[item].simplification + 
+	        '" style="background-color:#FFFFFF;color:#000000;text-decoration:underline">' + 
+	        value.substring(json.simplifications[item].start, json.simplifications[item].end) +'</a> '
+	        index = json.simplifications[item].end;
+		    }
+		    annotatedText = annotatedText + value.substring(index, value.length);
+		    document.getElementById(target).innerHTML = '<p>' + annotatedText + '</p>';
+	    } else {
+	    	document.getElementById(target).innerHTML = '<p>' + source + '</p>';
+	    } 
 	  })
 	  .fail(function( jqxhr, textStatus, error) {
 	  	console.log(textStatus + ", " + error);
